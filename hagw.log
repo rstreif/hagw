@@ -1,0 +1,16 @@
+INFO 2015-11-17 10:37:02,200 hagwserver 14527 140275687884544 HAGW Server: Starting...
+INFO 2015-11-17 10:37:02,200 hagwserver 14527 140275687884544 HAGW Server: General Configuration: RVI_SERVICE_EDGE_URL: http://127.0.0.1:8801
+INFO 2015-11-17 10:37:41,117 hagwserver 14538 140712041674496 HAGW Server: Starting...
+INFO 2015-11-17 10:37:41,118 hagwserver 14538 140712041674496 HAGW Server: General Configuration: RVI_SERVICE_EDGE_URL: http://127.0.0.1:8801
+INFO 2015-11-17 10:37:41,118 hagwserver 14538 140712041674496 HAGW Server: Setting up outbound connection to RVI Service Edge at http://127.0.0.1:8801
+INFO 2015-11-17 10:37:57,533 hagwserver 14541 140070173349632 HAGW Server: Starting...
+INFO 2015-11-17 10:37:57,533 hagwserver 14541 140070173349632 HAGW Server: General Configuration: RVI_SERVICE_EDGE_URL: http://127.0.0.1:8801
+INFO 2015-11-17 10:37:57,533 hagwserver 14541 140070173349632 HAGW Server: Setting up outbound connection to RVI Service Edge at http://127.0.0.1:8801
+INFO 2015-11-17 10:38:10,281 hagwserver 14544 139690527663872 HAGW Server: Starting...
+INFO 2015-11-17 10:38:10,282 hagwserver 14544 139690527663872 HAGW Server: General Configuration: RVI_SERVICE_EDGE_URL: http://127.0.0.1:8801
+INFO 2015-11-17 10:38:10,282 hagwserver 14544 139690527663872 HAGW Server: Setting up outbound connection to RVI Service Edge at http://127.0.0.1:8801
+INFO 2015-11-17 10:38:10,284 hagwserver 14544 139690527663872 HAGW Server: Starting Pixie Adjacent Callback Server on http://127.0.0.1:20002 with service id /pixie.
+INFO 2015-11-17 10:38:10,284 hagwserver 14544 139690527663872 HAGW Server: Pixie Adjacent Callback Server started.
+INFO 2015-11-17 10:38:20,794 hagwserver 14544 139690527663872 HAGW Server: Main Loop
+INFO 2015-11-17 10:38:30,805 hagwserver 14544 139690527663872 HAGW Server: Main Loop
+INFO 2015-11-17 10:38:32,122 hagwserver 14544 139690527663872 HAGW Server: Caught signal: 2. Shutting down...
