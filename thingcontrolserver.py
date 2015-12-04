@@ -35,12 +35,13 @@ class ThingcontrolCallbackServer(threading.Thread):
         logger = _logger
         service_edge = _service_edge
         threading.Thread.__init__(self)
-        url = urlparse(settings.PIXIE_SERVER_CALLBACK_URL)
-        self.localServer =  RVIJSONRPCServer(addr=((url.hostname, url.port)), logRequests=False)
+        self.init_callback_server()
         self.register_services()
-        
-    def register_services(self):
-        # register callback functions with RPC server
+
+    def init_callback_server(self):
+        # initialize RPC server and register callback functions
+        url = urlparse(settings.TC_SERVER_CALLBACK_URL)
+        self.localServer =  RVIJSONRPCServer(addr=((url.hostname, url.port)), logRequests=False)
         self.localServer.register_function(getDeviceStatus, settings.TC_SERVER_SERVICE_ID + "/getdevicestatus")
         self.localServer.register_function(setHueLighting, settings.TC_SERVER_SERVICE_ID + "/sethuelighting")
         self.localServer.register_function(setOutlet, settings.TC_SERVER_SERVICE_ID + "/setoutlet")
@@ -48,7 +49,9 @@ class ThingcontrolCallbackServer(threading.Thread):
         self.localServer.register_function(setLock, settings.TC_SERVER_SERVICE_ID + "/setlock")
         self.localServer.register_function(setDimmer, settings.TC_SERVER_SERVICE_ID + "/setdimmer")
         self.localServer.register_function(setThermostat, settings.TC_SERVER_SERVICE_ID + "/setthermostat")
-
+        self.localServer.register_function(secureHome, settings.TC_SERVER_SERVICE_ID + "/securehome")
+        
+    def register_services(self):
         # register services with RVI framework
         result = service_edge.register_service(service = settings.TC_SERVER_SERVICE_ID + '/getdevicestatus',
                                                network_address = settings.TC_SERVER_CALLBACK_URL)
@@ -71,12 +74,16 @@ class ThingcontrolCallbackServer(threading.Thread):
         result = service_edge.register_service(service = settings.TC_SERVER_SERVICE_ID + '/setthermostat',
                                                network_address = settings.TC_SERVER_CALLBACK_URL)
         logger.info('Thingcontrol Service Registration: setthermostat service name: %s', result['service'])
+        result = service_edge.register_service(service = settings.TC_SERVER_SERVICE_ID + '/securehome',
+                                               network_address = settings.TC_SERVER_CALLBACK_URL)
+        logger.info('Thingcontrol Service Registration: setthermostat service name: %s', result['service'])
 
     def run(self):
         self.localServer.serve_forever()
         
     def shutdown(self):
         self.localServer.shutdown()
+        self.localServer.server_close()
 
 
 # Callback functions
@@ -96,6 +103,12 @@ def setHueLighting(deviceid, control):
     :param: control: hue settings
     """
     logger.info('Thingcontrol Callback Server: setHueLighting: deviceid: %s, control: %s.', deviceid, control)
+    data = initData()
+    data['device_id'] = deviceid
+    data['device_type'] = 'zb_hue_bulb'
+    data['msgTyp'] = 'zb_hue_msg'
+    data['control'] = control
+    sendCommand('huelighting', data)
     return {u'status': 0}
 
 def setOutlet(deviceid, control):
@@ -105,6 +118,12 @@ def setOutlet(deviceid, control):
     :param: control: state
     """
     logger.info('Thingcontrol Callback Server: setOutlet: deviceid: %s, control: %s.', deviceid, control)
+    data = initData()
+    data['device_id'] = deviceid
+    data['device_type'] = 'zb-smartplug'
+    data['msgTyp'] = 'zb_smartplug_msg'
+    data['control'] = control
+    sendCommand('wallsmartoutlet', data)
     return {u'status': 0}
 
 def setSwitch(deviceid, control):
@@ -114,6 +133,12 @@ def setSwitch(deviceid, control):
     :param: control: state
     """
     logger.info('Thingcontrol Callback Server: setSwitch: deviceid: %s, control: %s.', deviceid, control)
+    data = initData()
+    data['device_id'] = deviceid
+    data['device_type'] = 'zb-smartswitch'
+    data['msgTyp'] = 'zb_smartswitch_msg'
+    data['control'] = control
+    sendCommand('smartswitch', data)
     return {u'status': 0}
 
 def setLock(deviceid, control):
@@ -123,6 +148,12 @@ def setLock(deviceid, control):
     :param: control: state
     """
     logger.info('Thingcontrol Callback Server: setLock: deviceid: %s, control: %s.', deviceid, control)
+    data = initData()
+    data['device_id'] = deviceid
+    data['device_type'] = 'zb_door_lock'
+    data['msgTyp'] = 'zb_door_msg'
+    data['control'] = control
+    sendCommand('doorlock', data)
     return {u'status': 0}
 
 def setDimmer(deviceid, control):
@@ -132,6 +163,12 @@ def setDimmer(deviceid, control):
     :param: control: state
     """
     logger.info('Thingcontrol Callback Server: setDimmer: deviceid: %s, control: %s.', deviceid, control)
+    data = initData()
+    data['device_id'] = deviceid
+    data['device_type'] = 'zb-dimmer'
+    data['msgTyp'] = 'zb_dimmer_msg'
+    data['control'] = control
+    sendCommand('dimmer', data)
     return {u'status': 0}
 
 def setThermostat(deviceid, control):
@@ -141,4 +178,59 @@ def setThermostat(deviceid, control):
     :param: control: state
     """
     logger.info('Thingcontrol Callback Server: setThermostat: deviceid: %s, control: %s.', deviceid, control)
+    data = initData()
+    data['device_id'] = deviceid
+    data['device_type'] = 'zw_thermostat'
+    data['msgTyp'] = 'thermostat_msg'
+    data['control'] = control
+    sendCommand('thermostat', data)
     return {u'status': 0}
+
+def secureHome(deviceid, control):
+    """
+    Control thermostat device.
+    :param: deviceid: id of the thermostat device
+    :param: control: state
+    """
+    logger.info('Thingcontrol Callback Server: secureHome: deviceid: %s, control: %s.', deviceid, control)
+    return {u'status': 0}
+
+   
+def initData():
+    """
+    Initialize data structure for Thingcontrol message
+    return: data structure in JSON format
+    """
+    data = {
+        "strId": "",
+        "device_id": "",
+        "device_type": "",
+        "display_name": "none",
+        "msgId": "",
+        "msgTyp": "",
+        "time": "",
+        "loc": [{}],
+        "pyld": [{}],
+        "control": [{}]
+    }
+    return data
+    
+def sendCommand(command, data):
+    """
+    Connect to the Thingcontrol server and send a command.
+    :param: command: command to send
+    :param: data: JSON data blob for command
+    """
+    logger.info('Thingcontrol Callback Server: sendCommand: command: %s, data: %s, dest: %s.', command, data, settings.TC_SERVER_GATEWAY_URL)
+    try:
+        url = urlparse(settings.TC_SERVER_GATEWAY_URL)
+        con = httplib.HTTPConnection(url.hostname, url.port)
+        path = settings.TC_SERVER_GATEWAY_DOMAIN + '/' + command
+        headers = { 'Content-Type':'application/json', 'Accept':'application/json'}
+        con.request('POST', path, json.dumps(data), headers)
+        res = con.getresponse()
+        logger.info('Thingcontrol Callback Server: sendCommand: Response: %s %s', res.status, res.reason)
+    except Exception as e:
+        logger.error('Thingcontrol Callback Server: sendCommand: Exception: %s', e)
+    return data
+

@@ -35,15 +35,17 @@ class UsermessageCallbackServer(threading.Thread):
         logger = _logger
         service_edge = _service_edge
         threading.Thread.__init__(self)
-        url = urlparse(settings.PIXIE_SERVER_CALLBACK_URL)
-        self.localServer =  RVIJSONRPCServer(addr=((url.hostname, url.port)), logRequests=False)
+        self.init_callback_server()
         self.register_services()
-        
-    def register_services(self):
-        # register callback functions with RPC server
+
+    def init_callback_server(self):
+        # initialize RPC server and register callback functions
+        url = urlparse(settings.UM_SERVER_CALLBACK_URL)
+        self.localServer =  RVIJSONRPCServer(addr=((url.hostname, url.port)), logRequests=False)
         self.localServer.register_function(showUserMessage, settings.UM_SERVER_SERVICE_ID + "/showusermessage")
         self.localServer.register_function(cancelUserMessage, settings.UM_SERVER_SERVICE_ID + "/canelusermessage")
-
+        
+    def register_services(self):
         # register services with RVI framework
         result = service_edge.register_service(service = settings.UM_SERVER_SERVICE_ID + '/showusermessage',
                                                network_address = settings.UM_SERVER_CALLBACK_URL)
@@ -57,6 +59,7 @@ class UsermessageCallbackServer(threading.Thread):
         
     def shutdown(self):
         self.localServer.shutdown()
+        self.localServer.server_close()
 
 
 # Callback functions

@@ -35,15 +35,17 @@ class PixieCallbackServer(threading.Thread):
         logger = _logger
         service_edge = _service_edge
         threading.Thread.__init__(self)
+        self.init_callback_server()
+        self.register_services()
+
+    def init_callback_server(self):
+        # initialize RPC server and register callback functions
         url = urlparse(settings.PIXIE_SERVER_CALLBACK_URL)
         self.localServer =  RVIJSONRPCServer(addr=((url.hostname, url.port)), logRequests=False)
-        #self.register_services()
-        
-    def register_services(self):
-        # register callback functions with RPC server
         self.localServer.register_function(getRawItemLocations, settings.PIXIE_SERVER_SERVICE_ID + "/getrawitemlocations")
         self.localServer.register_function(getItemLocations, settings.PIXIE_SERVER_SERVICE_ID + "/getitemlocations")
-
+        
+    def register_services(self):
         # register services with RVI framework
         result = service_edge.register_service(service = settings.PIXIE_SERVER_SERVICE_ID + '/getrawitemlocations',
                                                network_address = settings.PIXIE_SERVER_CALLBACK_URL)
@@ -57,6 +59,7 @@ class PixieCallbackServer(threading.Thread):
         
     def shutdown(self):
         self.localServer.shutdown()
+        self.localServer.server_close()
 
 
 # Callback functions
@@ -142,7 +145,7 @@ def getPixieLocations():
     except Exception as e:
         logger.error('PIXIE Callback Server: calibratePixieLocations: Exception: %s', e)
     loc['username'] = pstatus['username']
-    loc['pixiepoints'] = points
+    loc['pixiePoints'] = points
     loc['dimensions'] = settings.PIXIE_SERVER_HOME_DIMENSIONS
     return loc
     
@@ -171,7 +174,7 @@ def sendMessage(sendto, message):
     :param: meessage: message as RVI parameter block
     """
     
-    logger.info('PIXIE Callback Server: sending message: to %s', sendto)
+    logger.info('PIXIE Callback Server: sending message: %s to %s', message, sendto)
     set_status(retry, sota.models.Status.STARTED)
     
     # send message
@@ -181,7 +184,7 @@ def sendMessage(sendto, message):
                            service_name = sendto,
                            transaction_id = str(transaction_id),
                            timeout = int(time.time()) + settings.RVI_SEND_TIMEOUT,
-                           parameters = message)
+                           parameters = [message])
     except Exception as e:
         logger.error('PIXIE Callback Server: cannot send message: %s', e)
         return False

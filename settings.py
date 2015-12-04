@@ -40,7 +40,7 @@ LOGGING_CONFIG = {
              'formatter': 'simple',
         },
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': LOGGING_DIR,
             'formatter': 'verbose',
@@ -49,7 +49,7 @@ LOGGING_CONFIG = {
     'loggers': {
         'hagw.default': {
             'handlers': ['file'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         },
         'hagw.console': {
@@ -64,24 +64,40 @@ LOGGING_CONFIG = {
 MAIN_LOOP_INTERVAL = 5
 
 # RVI Configuration
-RVI_SERVICE_EDGE_URL = 'http://127.0.0.1:8801'
+RVI_SERVICE_EDGE_URL = 'http://192.168.100.101:8801'
 RVI_SEND_TIMEOUT = 10
+
+# HAGW Core Services
+#CORE_SERVER_CALLBACK_URL = 'http://127.0.0.1:20000'
+CORE_SERVER_CALLBACK_URL = 'http://192.168.100.100:20000'
+CORE_SERVER_SERVICE_ID = '/core'
+CORE_SERVER_RVI_DOMAIN = 'jlr.com/smarthome/myhome'
 
 # Pixie Adjacent Server Configuration
 PIXIE_SERVER_ENABLE = True
-PIXIE_SERVER_CALLBACK_URL = 'http://127.0.0.1:20001'
+#PIXIE_SERVER_CALLBACK_URL = 'http://127.0.0.1:20001'
+PIXIE_SERVER_CALLBACK_URL = 'http://192.168.100.100:20001'
 PIXIE_SERVER_SERVICE_ID = '/pixie'
-PIXIE_SERVER_ADJACENT_URL = 'http://192.168.16.138:3000'
-PIXIE_SERVER_REFERENCE_POINTS = ['D78D11E03AC8', 'F6B1591EAEDE']
+PIXIE_SERVER_ADJACENT_URL = 'http://192.168.100.101:3000'
+PIXIE_SERVER_REFERENCE_POINTS = ['D78D11E03AC8', 'DC955EBFD1C1']
 PIXIE_SERVER_HOME_DIMENSIONS = {'x': 350, 'y': 300}
 
 # Thingcontrol Server Configuration
-TC_SERVER_ENABLE = False
-TC_SERVER_CALLBACK_URL = 'http://127.0.0.1:20002'
+TC_SERVER_ENABLE = True
+#TC_SERVER_CALLBACK_URL = 'http://127.0.0.1:20002'
+TC_SERVER_CALLBACK_URL = 'http://192.168.100.100:20002'
 TC_SERVER_SERVICE_ID = '/thingcontrol'
-TC_SERVER_GATEWAY_URL = 'http://192.168.16.138:5000'
+TC_SERVER_GATEWAY_URL = 'http://192.168.100.151:9091'
+TC_SERVER_GATEWAY_DOMAIN = '/hlg/thingcontrol'
 
 # Usermessage Server Configuration
-UM_SERVER_ENABLE = False
-UM_SERVER_CALLBACK_URL = 'http://127.0.0.1:20003'
+UM_SERVER_ENABLE = True
+#UM_SERVER_CALLBACK_URL = 'http://127.0.0.1:20003'
+UM_SERVER_CALLBACK_URL = 'http://192.168.100.100:20003'
 UM_SERVER_SERVICE_ID = '/message'
+
+# Vehicle Server Configuration
+VH_SERVER_ENABLE = True
+#VH_SERVER_CALLBACK_URL = 'http://127.0.0.1:20004'
+VH_SERVER_CALLBACK_URL = 'http://192.168.100.100:20004'
+VH_SERVER_SERVICE_ID = '/vehicle'
