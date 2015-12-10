@@ -181,7 +181,7 @@ def setThermostat(deviceid, control):
     data = initData()
     data['device_id'] = deviceid
     data['device_type'] = 'zw_thermostat'
-    data['msgTyp'] = 'thermostat_msg'
+    data['msgTyp'] = 'zw_thermostat_msg'
     data['control'] = control
     sendCommand('thermostat', data)
     return {u'status': 0}
@@ -193,6 +193,12 @@ def secureHome(deviceid, control):
     :param: control: state
     """
     logger.info('Thingcontrol Callback Server: secureHome: deviceid: %s, control: %s.', deviceid, control)
+    data = initData()
+    data['device_id'] = deviceid
+    data['device_type'] = 'zw_thermostat'
+    data['msgTyp'] = 'zw_thermostat_msg'
+    data['control'] = control
+    sendCommand('homeComing', data)
     return {u'status': 0}
 
    

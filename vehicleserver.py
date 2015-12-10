@@ -12,7 +12,7 @@ Maintainer: Rudolf Streif (rstreif@jaguarlandrover.com)
 Vehicle Server.
 """
 
-import os, threading, base64
+import os, threading, base64, socket
 import time, httplib, json, math
 from urlparse import urlparse
 from rvijsonrpc import RVIJSONRPCServer
@@ -23,7 +23,7 @@ logger = None
 service_edge = None
 transaction_id = 0
 
-# Usermessage Callback Server
+# Vehicle Callback Server
 class VehicleCallbackServer(threading.Thread):
     """
     RPC server thread responding to vehicle callbacks from the RVI framework
@@ -75,11 +75,28 @@ def statusReport(vin, timestamp, data):
             frontleft = value['frontleft']
             frontright = value['frontright']
         elif key == 'trunk':
-            trunk = value
+            if value == 'open':
+                msg = '{ "command": "vehicleIncursion", "type": "hatch" }'
+                sendTV(msg)
         elif key == 'speed':
             speed = float(value)
         elif key == 'odometer':
             odometer = float(value)
     
     return {u'status': 0}
+
+def sendTV(message):
+    """
+    Send a message to the smarthome TV.
+    :param: message: message
+    """
+    logger.info('Sending to TV: %s, message: %s', settings.TV_SERVICE_EDGE_URL, message)
+    try:
+        url = urlparse.urlparse(settings.TV_SERVICE_EDGE_URL)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((url.hostname, url.port))
+        sock.send(message)
+        sock.close()
+    except Exception as e:
+        logger.error('Sending to TV failed: %s', e)
 

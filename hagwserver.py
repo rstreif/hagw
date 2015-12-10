@@ -169,10 +169,11 @@ class HAGWServer(Daemon):
             signal(sig, self.shutdown)
         # start servers
         self.startup()
+        # main loop
+        logger.debug('HAGW Server: Entering Main Loop')
         while True:
             try:
                 time.sleep(settings.MAIN_LOOP_INTERVAL)
-                logger.debug('HAGW Server: Main Loop')
                 if self.ping() == False:
                     # cannot ping myself via RVI -> restart
                     logger.warning('HAGW Server: ping failed -> restarting')

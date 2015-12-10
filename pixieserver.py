@@ -180,7 +180,7 @@ def sendMessage(sendto, message):
     # send message
     transaction_id += 1
     try:
-        rvi_server.message(calling_service = settings.PIXIE_SERVER_SERVICE_ID,
+        service_edge.message(calling_service = settings.PIXIE_SERVER_SERVICE_ID,
                            service_name = sendto,
                            transaction_id = str(transaction_id),
                            timeout = int(time.time()) + settings.RVI_SEND_TIMEOUT,
