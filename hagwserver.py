@@ -57,7 +57,7 @@ class HAGWServer(Daemon):
         for key, value in self.servers.iteritems():
             if value is not None:
                 value.shutdown()
-        self.service_edge = None
+        self.rvi_service_edge = None
 
     def startup(self):
         """
@@ -192,7 +192,7 @@ class HAGWServer(Daemon):
         Ping myself via RVI
         """
         try:
-            self.service_edge.message(service_name = settings.CORE_SERVER_RVI_DOMAIN + settings.CORE_SERVER_SERVICE_ID + "/ping",
+            self.rvi_service_edge.message(service_name = settings.CORE_SERVER_RVI_DOMAIN + settings.CORE_SERVER_SERVICE_ID + "/ping",
                            timeout = int(time.time()) + settings.RVI_SEND_TIMEOUT,
                            parameters = [{"message":"alive"}]
                           )
