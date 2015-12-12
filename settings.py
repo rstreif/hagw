@@ -17,7 +17,8 @@ import os
 BASE_DIR = os.path.dirname(__file__)
 
 # Logging settings
-LOGGING_DIR = os.path.join(BASE_DIR, 'hagw.log')
+#LOGGING_DIR = os.path.join(BASE_DIR, 'hagw.log')
+LOGGING_DIR = '/var/log/hagw.log'
 LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
