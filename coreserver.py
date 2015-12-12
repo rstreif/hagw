@@ -61,13 +61,10 @@ class CoreCallbackServer(threading.Thread):
 
 
 # Callback functions
-    def ping(message):
-        logger.info('Core Server: Ping: "%s"', message)
-
 def ping(message):
     """
     Ping the HAGW with a message.
     :param: message: ping message, will just be logged
     """
-    logger.info('Core Callback Server: ping: message: %s', message)
+    logger.info('Core Server: ping: %s', message)
     return {u'status': 0}

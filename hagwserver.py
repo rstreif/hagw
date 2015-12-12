@@ -57,6 +57,7 @@ class HAGWServer(Daemon):
         for key, value in self.servers.iteritems():
             if value is not None:
                 value.shutdown()
+        self.service_edge = None
 
     def startup(self):
         """
@@ -178,8 +179,10 @@ class HAGWServer(Daemon):
                     # cannot ping myself via RVI -> restart
                     logger.warning('HAGW Server: ping failed -> restarting')
                     self.cleanup()
-                    self.startup()
-                #logger.debug('HAGW Server: Item Locations: %s', pixieserver.getPixieLocations())
+                    if not self.startup():
+                        logger.warning('HAGW Server: startup failed.')
+                        continue
+                #logger.debug('HAGW Server: Thingcontrol Status: %s', thingcontrolserver.setIVIHVAC())
             except KeyboardInterrupt:
                 print ('\n')
                 break
@@ -189,8 +192,7 @@ class HAGWServer(Daemon):
         Ping myself via RVI
         """
         try:
-            server = jsonrpclib.Server(settings.RVI_SERVICE_EDGE_URL)
-            server.message(service_name = settings.CORE_SERVER_RVI_DOMAIN + settings.CORE_SERVER_SERVICE_ID + "/ping",
+            self.service_edge.message(service_name = settings.CORE_SERVER_RVI_DOMAIN + settings.CORE_SERVER_SERVICE_ID + "/ping",
                            timeout = int(time.time()) + settings.RVI_SEND_TIMEOUT,
                            parameters = [{"message":"alive"}]
                           )

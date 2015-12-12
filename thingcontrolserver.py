@@ -193,12 +193,14 @@ def secureHome(deviceid, control):
     :param: control: state
     """
     logger.info('Thingcontrol Callback Server: secureHome: deviceid: %s, control: %s.', deviceid, control)
-    data = initData()
-    data['device_id'] = deviceid
-    data['device_type'] = 'zw_thermostat'
-    data['msgTyp'] = 'zw_thermostat_msg'
-    data['control'] = control
-    sendCommand('homeComing', data)
+    for c in control:
+        if 'value' in c:
+            if c['value'] == 'arm':
+                switchLights('off')
+                lockDoors('lock')
+            elif c['value'] == 'disarm':
+                switchLights('on')
+                lockDoors('unlock')
     return {u'status': 0}
 
    
@@ -221,6 +223,35 @@ def initData():
     }
     return data
     
+def switchLights(state):
+    """
+    Turn on/off all lights in the smarthome.
+    :param: state: 'on' or 'off'
+    """
+    data = initData()
+    data['device_id'] = 'wip_gw2.zb_hue01'
+    data['device_type'] = 'zb_hue_bulb'
+    data['msgTyp'] = 'zb_hue_msg'
+    if state == "off":
+        data['control'] = [{"value":0, "controlR":0, "controlG":0, "controlB":0}]
+    else:
+        data['control'] = [{"value":255, "controlR":255, "controlG":255, "controlB":255}]
+    sendCommand('huelighting', data)
+    
+def lockDoors(state):
+    """
+    Lock/unlock all doors in the smarthome
+    :param: state: 'lock' or 'unlock'
+    """
+    data = initData()
+    data['device_id'] = 'wip_gw2.zb_lock01'
+    data['device_type'] = 'zb_door_lock'
+    data['msgTyp'] = 'zb_door_msg'
+    data['control'] = [{"state":state}]
+    sendCommand('doorlock', data)
+    
+    
+    
 def sendCommand(command, data):
     """
     Connect to the Thingcontrol server and send a command.
@@ -231,7 +262,7 @@ def sendCommand(command, data):
     try:
         url = urlparse(settings.TC_SERVER_GATEWAY_URL)
         con = httplib.HTTPConnection(url.hostname, url.port)
-        path = settings.TC_SERVER_GATEWAY_DOMAIN + '/' + command
+        path = settings.TC_SERVER_GATEWAY_DOMAIN_CONTROL + '/' + command
         headers = { 'Content-Type':'application/json', 'Accept':'application/json'}
         con.request('POST', path, json.dumps(data), headers)
         res = con.getresponse()
@@ -239,4 +270,62 @@ def sendCommand(command, data):
     except Exception as e:
         logger.error('Thingcontrol Callback Server: sendCommand: Exception: %s', e)
     return data
+    
+    
+def getThingcontrolStatus(command):
+    """
+    Connect to the Thingcontrol Server and get the termostat status information.
+    :param: command: the status command
+    """
+    logger.info('Thingcontrol Callback Server: getThingcontrolStatus: command: %s, dest: %s.', command, settings.TC_SERVER_GATEWAY_URL)
+    try:
+        url = urlparse(settings.TC_SERVER_GATEWAY_URL)
+        con = httplib.HTTPConnection(url.hostname, url.port)
+        path = settings.TC_SERVER_GATEWAY_DOMAIN_STATUS + '/' + command
+        con.request('GET', path)
+        res = con.getresponse()
+        data = json.loads(res.read())
+    except Exception as e:
+        logger.error('Thingcontrol Callback Server: getThingcontrolStatus: Exception: %s', e)
+        data = None
+    return data
+    
+def sendIVI(sendto, message):
+    logger.info('Sending to IVI: %s, message: %s', sendto, message)
+    try:
+        msg = {}
+        msg['jsonrpc'] = "2.0"
+        msg['id'] = 'messageid'
+        msg['method'] = 'message'
+        msg['params'] = {
+            'service_name': 'jlr.com/vin/123456/hvac/sethvac',
+            'timeout' : 500000,
+            'parameters' : [message]
+        }
+
+        url = urlparse(settings.IVI_SERVICE_EDGE_URL)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((url.hostname, url.port))
+        sock.send(json.dumps(msg))
+        sock.close()
+    except Exception as e:
+        logger.error('Sending to IVI failed: %s', e)
+
+old_temp = 0
+def setIVIHVAC():
+    data = getThingcontrolStatus('thermostat')
+    if data == None: return False
+    for c in data['control']:
+        if 'target_temp' in c: temp = c['target_temp']
+    if temp != old_temp:
+        control = {}
+        control['temp_front_left'] = temp
+        control['temp_front_right'] = temp
+        control['fan_speed'] = 5
+        sendIVI(settings.IVI_SERVICE_EDGE_URL, control)
+    return True
+    
+    
+
+
 

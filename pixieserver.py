@@ -12,7 +12,7 @@ Maintainer: Rudolf Streif (rstreif@jaguarlandrover.com)
 Pixie Adjacent Server (PAS) services.
 """
 
-import os, threading, base64
+import os, threading, base64, socket
 import time, httplib, json, math
 from urlparse import urlparse
 from rvijsonrpc import RVIJSONRPCServer
@@ -21,7 +21,6 @@ import settings
 
 logger = None
 service_edge = None
-transaction_id = 0
 
 # Pixie Callback Server
 class PixieCallbackServer(threading.Thread):
@@ -175,14 +174,10 @@ def sendMessage(sendto, message):
     """
     
     logger.info('PIXIE Callback Server: sending message: %s to %s', message, sendto)
-    set_status(retry, sota.models.Status.STARTED)
     
     # send message
-    transaction_id += 1
     try:
-        service_edge.message(calling_service = settings.PIXIE_SERVER_SERVICE_ID,
-                           service_name = sendto,
-                           transaction_id = str(transaction_id),
+        service_edge.message(service_name = sendto,
                            timeout = int(time.time()) + settings.RVI_SEND_TIMEOUT,
                            parameters = [message])
     except Exception as e:

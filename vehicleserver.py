@@ -92,7 +92,7 @@ def sendTV(message):
     """
     logger.info('Sending to TV: %s, message: %s', settings.TV_SERVICE_EDGE_URL, message)
     try:
-        url = urlparse.urlparse(settings.TV_SERVICE_EDGE_URL)
+        url = urlparse(settings.TV_SERVICE_EDGE_URL)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((url.hostname, url.port))
         sock.send(message)
