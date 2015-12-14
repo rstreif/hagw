@@ -70,7 +70,7 @@ def getRawItemLocations(tags, sendto):
     """
     logger.info('PIXIE Callback Server: getRawItemLocations: tags: %s, sento: %s.', tags, sendto)
     pstatus = getPixieStatus()
-    sendMessage(sendto, pstatus)
+    sendRVIMessage(sendto, pstatus)
     return {u'status': 0}
 
 def getItemLocations(tags, sendto):
@@ -81,7 +81,7 @@ def getItemLocations(tags, sendto):
     """
     logger.info('PIXIE Callback Server: getItemLocations: tags: %s, sento: %s.', tags, sendto)
     ploc = getPixieLocations()
-    sendMessage(sendto, ploc)
+    sendRVIMessage(sendto, ploc)
     return {u'status': 0}
 
     
@@ -166,7 +166,7 @@ def calculateCoordinates(dr1, dr2, d):
     except Exception as e: raise
 
 
-def sendMessage(sendto, message):
+def sendRVIMessage(sendto, message):
     """
     Send message to recipient via RVI.
     :param: sendto: recipient RVI service

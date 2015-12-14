@@ -94,6 +94,13 @@ def getDeviceStatus(devices, sendto):
     :param: sendto: RVI service to send the response to
     """
     logger.info('Thingcontrol Callback Server: getDeviceStatus: devices: %s, sento: %s.', devices, sendto)
+    if '*' in devices or 'thermostat' in devices:
+        data = getThingcontrolStatus('thermostat')
+    else:
+        logger.info('Thingcontrol Callback Server: getDeviceStatus: unknown device')
+        return {u'status': 1}
+    if data == None: return {u'status': 1}
+    sendRVIMessage(sendto, data)
     return {u'status': 0}
 
 def setHueLighting(deviceid, control):
@@ -108,7 +115,7 @@ def setHueLighting(deviceid, control):
     data['device_type'] = 'zb_hue_bulb'
     data['msgTyp'] = 'zb_hue_msg'
     data['control'] = control
-    sendCommand('huelighting', data)
+    sendThingcontrolCommand('huelighting', data)
     return {u'status': 0}
 
 def setOutlet(deviceid, control):
@@ -123,7 +130,7 @@ def setOutlet(deviceid, control):
     data['device_type'] = 'zb-smartplug'
     data['msgTyp'] = 'zb_smartplug_msg'
     data['control'] = control
-    sendCommand('wallsmartoutlet', data)
+    sendThingcontrolCommand('wallsmartoutlet', data)
     return {u'status': 0}
 
 def setSwitch(deviceid, control):
@@ -138,7 +145,7 @@ def setSwitch(deviceid, control):
     data['device_type'] = 'zb-smartswitch'
     data['msgTyp'] = 'zb_smartswitch_msg'
     data['control'] = control
-    sendCommand('smartswitch', data)
+    sendThingcontrolCommand('smartswitch', data)
     return {u'status': 0}
 
 def setLock(deviceid, control):
@@ -153,7 +160,7 @@ def setLock(deviceid, control):
     data['device_type'] = 'zb_door_lock'
     data['msgTyp'] = 'zb_door_msg'
     data['control'] = control
-    sendCommand('doorlock', data)
+    sendThingcontrolCommand('doorlock', data)
     return {u'status': 0}
 
 def setDimmer(deviceid, control):
@@ -168,7 +175,7 @@ def setDimmer(deviceid, control):
     data['device_type'] = 'zb-dimmer'
     data['msgTyp'] = 'zb_dimmer_msg'
     data['control'] = control
-    sendCommand('dimmer', data)
+    sendThingcontrolCommand('dimmer', data)
     return {u'status': 0}
 
 def setThermostat(deviceid, control):
@@ -183,7 +190,7 @@ def setThermostat(deviceid, control):
     data['device_type'] = 'zw_thermostat'
     data['msgTyp'] = 'zw_thermostat_msg'
     data['control'] = control
-    sendCommand('thermostat', data)
+    sendThingcontrolCommand('thermostat', data)
     return {u'status': 0}
 
 def secureHome(deviceid, control):
@@ -236,7 +243,7 @@ def switchLights(state):
         data['control'] = [{"value":0, "controlR":0, "controlG":0, "controlB":0}]
     else:
         data['control'] = [{"value":255, "controlR":255, "controlG":255, "controlB":255}]
-    sendCommand('huelighting', data)
+    sendThingcontrolCommand('huelighting', data)
     
 def lockDoors(state):
     """
@@ -248,17 +255,17 @@ def lockDoors(state):
     data['device_type'] = 'zb_door_lock'
     data['msgTyp'] = 'zb_door_msg'
     data['control'] = [{"state":state}]
-    sendCommand('doorlock', data)
+    sendThingcontrolCommand('doorlock', data)
     
     
     
-def sendCommand(command, data):
+def sendThingcontrolCommand(command, data):
     """
     Connect to the Thingcontrol server and send a command.
     :param: command: command to send
     :param: data: JSON data blob for command
     """
-    logger.info('Thingcontrol Callback Server: sendCommand: command: %s, data: %s, dest: %s.', command, data, settings.TC_SERVER_GATEWAY_URL)
+    logger.info('Thingcontrol Callback Server: sendThingcontrolCommand: command: %s, data: %s, dest: %s.', command, data, settings.TC_SERVER_GATEWAY_URL)
     try:
         url = urlparse(settings.TC_SERVER_GATEWAY_URL)
         con = httplib.HTTPConnection(url.hostname, url.port)
@@ -266,9 +273,9 @@ def sendCommand(command, data):
         headers = { 'Content-Type':'application/json', 'Accept':'application/json'}
         con.request('POST', path, json.dumps(data), headers)
         res = con.getresponse()
-        logger.info('Thingcontrol Callback Server: sendCommand: Response: %s %s', res.status, res.reason)
+        logger.info('Thingcontrol Callback Server: sendThingcontrolCommand: Response: %s %s', res.status, res.reason)
     except Exception as e:
-        logger.error('Thingcontrol Callback Server: sendCommand: Exception: %s', e)
+        logger.error('Thingcontrol Callback Server: sendThingcontrolCommand: Exception: %s', e)
     return data
     
     
@@ -290,26 +297,6 @@ def getThingcontrolStatus(command):
         data = None
     return data
     
-def sendIVI(sendto, message):
-    logger.info('Sending to IVI: %s, message: %s', sendto, message)
-    try:
-        msg = {}
-        msg['jsonrpc'] = "2.0"
-        msg['id'] = 'messageid'
-        msg['method'] = 'message'
-        msg['params'] = {
-            'service_name': 'jlr.com/vin/123456/hvac/sethvac',
-            'timeout' : 500000,
-            'parameters' : [message]
-        }
-
-        url = urlparse(settings.IVI_SERVICE_EDGE_URL)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((url.hostname, url.port))
-        sock.send(json.dumps(msg))
-        sock.close()
-    except Exception as e:
-        logger.error('Sending to IVI failed: %s', e)
 
 old_temp = 0
 def setIVIHVAC():
@@ -326,6 +313,27 @@ def setIVIHVAC():
     return True
     
     
+def sendRVIMessage(sendto, message):
+    """
+    Send message to recipient via RVI.
+    :param: sendto: recipient RVI service
+    :param: meessage: message as RVI parameter block
+    """
+    
+    logger.info('Thingcontrol Callback Server: sending message: %s to %s', message, sendto)
+    
+    # send message
+    try:
+        service_edge.message(service_name = sendto,
+                           timeout = int(time.time()) + settings.RVI_SEND_TIMEOUT,
+                           parameters = [message])
+    except Exception as e:
+        logger.error('Thingcontrol Callback Server: cannot send message: %s', e)
+        return False
+    
+    logger.info('Thingcontrol Callback Server: successfully sent message: to %s', sendto)
+
+    return True
 
 
 
