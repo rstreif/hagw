@@ -97,9 +97,11 @@ def getDeviceStatus(devices, sendto):
     if '*' in devices or 'thermostat' in devices:
         data = getThingcontrolStatus('thermostat')
     else:
-        logger.info('Thingcontrol Callback Server: getDeviceStatus: unknown device')
+        logger.warning('Thingcontrol Callback Server: getDeviceStatus: unknown device')
         return {u'status': 1}
-    if data == None: return {u'status': 1}
+    if data == None:
+        logger.warning('Thingcontrol Callback Server: getDeviceStatus: no status information received')
+        return {u'status': 1}
     sendRVIMessage(sendto, data)
     return {u'status': 0}
 
